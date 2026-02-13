@@ -51,12 +51,12 @@ async function registerCommands() {
   console.log(`Registered ${body.length} guild commands.`);
 }
 
-async function logMonitor(message) {
+async function logMonitor(message, options = {}) {
   if (!config.monitorChannelId) return;
   try {
     const channel = await client.channels.fetch(config.monitorChannelId);
     if (channel && channel.isTextBased()) {
-      await channel.send(message);
+      await channel.send({ content: message, ...options });
     }
   } catch (error) {
     console.error('Failed to log monitor message:', error);

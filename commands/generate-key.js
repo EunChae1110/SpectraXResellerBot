@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags, AttachmentBuilder } = require('discord.js');
 const { randomUUID } = require('crypto');
 const queries = require('../db/queries');
 const { LICENSE_MASKS, PRODUCT_SLUGS, PRODUCT_LABELS } = require('../db/schema');
@@ -7,10 +7,9 @@ const {
   parseSingleDuration,
   generateKeyFromMask,
   computeExpiresAt,
-  chunkArray,
 } = require('../utils');
 
-const MAX_KEYS_PER_COMMAND = 20;
+const MAX_KEYS_PER_COMMAND = 100;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -122,15 +121,21 @@ module.exports = {
         }
       });
 
-      const chunks = chunkArray(keys, 5);
+      const txtContent = keys.join('\n');
+      const buffer = Buffer.from(txtContent, 'utf-8');
+      const fileName = `keys_${productSlug}_${type}_${count}.txt`;
+      const attachment = new AttachmentBuilder(buffer, { name: fileName });
+      const monitorAttachment = new AttachmentBuilder(Buffer.from(txtContent, 'utf-8'), { name: fileName });
+
       await interaction.reply({
-        content: `已生成授权码（${PRODUCT_LABELS[productSlug]}，${type} x${count}）：\n${chunks
-          .map((group) => group.join('\n'))
-          .join('\n')}`,
+        content: `已生成授权码（${PRODUCT_LABELS[productSlug]}，${type} x${count}），详见附件：`,
+        files: [attachment],
         flags: MessageFlags.Ephemeral,
       });
 
-      await logMonitor(`${monitorMessage} - 成功：${product.slug} ${type} x${count}`);
+      await logMonitor(`${monitorMessage} - 成功：${product.slug} ${type} x${count}`, {
+        files: [monitorAttachment],
+      });
     } catch (error) {
       const message = error.message === '余额不足' ? '余额不足，无法生成授权码。' : '处理失败，请稍后再试。';
       await interaction.reply({ content: message, flags: MessageFlags.Ephemeral });
