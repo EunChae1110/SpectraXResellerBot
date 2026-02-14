@@ -126,6 +126,19 @@ async function decrementBalances(db, resellerId, productId, deltas) {
   );
 }
 
+async function getProductKeyByKey(db, key) {
+  const { rows } = await db.query(
+    `SELECT pk.*, p.name AS product_name, p.slug AS product_slug,
+            u.email AS used_user_email, u.username AS used_user_username
+     FROM public.product_keys pk
+     LEFT JOIN public.products p ON p.id = pk.product_id
+     LEFT JOIN public.users u ON u.id = pk.used_by
+     WHERE pk.key = $1 LIMIT 1`,
+    [key]
+  );
+  return mapRow(rows[0]);
+}
+
 async function insertProductKey(db, payload) {
   const {
     id,
@@ -172,5 +185,6 @@ module.exports = {
   ensureResellerBalance,
   incrementBalances,
   decrementBalances,
+  getProductKeyByKey,
   insertProductKey,
 };
