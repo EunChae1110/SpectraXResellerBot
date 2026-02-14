@@ -38,10 +38,6 @@ module.exports = {
             .join('\n')
         : '-';
 
-      const expiresInfo = row.expires_at
-        ? `<t:${Math.floor(new Date(row.expires_at).getTime() / 1000)}:F>`
-        : '永久';
-
       const embed = new EmbedBuilder()
         .setTitle('授权码信息')
         .setColor(statusColor)
@@ -51,7 +47,6 @@ module.exports = {
           { name: '时长', value: row.duration || '-', inline: true },
           { name: '等级', value: row.tier || '-', inline: true },
           { name: '状态', value: status, inline: true },
-          { name: '到期时间', value: expiresInfo, inline: true },
           { name: '创建时间', value: `<t:${Math.floor(new Date(row.created_at).getTime() / 1000)}:F>`, inline: true },
           { name: '使用信息', value: usedInfo, inline: false }
         );
